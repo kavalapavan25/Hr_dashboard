@@ -92,47 +92,26 @@ if uploaded_file is not None:
     else:
         st.warning("⚠️ No 'Salary' column found in this dataset.")
 
-    st.markdown("---")
-
-    # --------------------------------
-    # ATTRITION ANALYSIS
-    # --------------------------------
-    attrition_col = next((col for col in hr_data.columns if 'attrition' in col.lower()), None)
-    if attrition_col:
-        st.subheader("📉 Attrition (Employee Turnover) Overview")
-        attrition_counts = hr_data[attrition_col].value_counts()
-        st.bar_chart(attrition_counts)
-        st.dataframe(pd.DataFrame({
-            "Attrition Status": attrition_counts.index,
-            "Count": attrition_counts.values,
-            "Percentage": round((attrition_counts.values / attrition_counts.sum()) * 100, 2)
-        }))
-    else:
-        st.info("ℹ️ No 'Attrition' column found — skipping turnover analysis.")
-
-    st.markdown("---")
-
-    # --------------------------------
-    # TEAM CREDITS
-    # --------------------------------
-    st.markdown("""
-    ---
-    👩‍💻 **Project Created By:**
-    - Srujan Anirudh  
-    - Srinivas  
-    - M. Chathurya  
-    - Nakka Dharani  
-    - Pavan  
-
-    🏫 **Project:** HR Data Analysis Dashboard  
-    💡 Built with ❤️ using **Python** & **Streamlit**
-    """)
 else:
     st.info("👆 Please upload an HR-related CSV file to begin your analysis.")
 
+# --------------------------------
+# TEAM CREDITS (Always Visible)
+# --------------------------------
+st.markdown("""
+---
+👩‍💻 **Project Created By:**
+- Srujan Anirudh  
+- Srinivas  
+- M. Chathurya  
+- Nakka Dharani  
+- Pavan  
 
-else:
-    st.info("👆 Please upload an HR-related CSV file to begin your analysis.")
+🏫 **Project:** HR Data Analysis Dashboard  
+💡 Built with ❤️ using **Python** & **Streamlit**
+""")
+
+
 
 
 

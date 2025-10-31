@@ -101,7 +101,7 @@ else:
 st.markdown("""
 ---
 👩‍💻 **Project Created By:**
-- Srujan Anirudh  
+- Srujan  
 - Srinivas  
 - M. Chathurya  
 - Nakka Dharani  
@@ -110,6 +110,7 @@ st.markdown("""
 🏫 **Project:** HR Data Analysis Dashboard  
 💡 Built with ❤️ using **Python** & **Streamlit**
 """)
+
 
 
 

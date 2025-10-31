@@ -1,100 +1,138 @@
 import streamlit as st
 import pandas as pd
 
-# -------------------------------
+# --------------------------------
 # Streamlit Page Configuration
-# -------------------------------
+# --------------------------------
 st.set_page_config(page_title="HR Data Analysis", page_icon="📊", layout="wide")
 st.title("📊 HR Data Analysis Dashboard")
 
-# -------------------------------
+# --------------------------------
 # File Upload Section
-# -------------------------------
+# --------------------------------
 uploaded_file = st.file_uploader("📂 Upload your HR CSV file", type="csv")
 
 if uploaded_file is not None:
     hr_data = pd.read_csv(uploaded_file)
     st.success("✅ File uploaded successfully!")
 
+    # --------------------------------
+    # DATA PREVIEW
+    # --------------------------------
     st.subheader("🔍 Data Preview")
     st.dataframe(hr_data.head())
 
     st.markdown("---")
 
-    # ---------------------------------
-    # SECTION 1: Education Distribution
-    # ---------------------------------
-    if st.button("1️⃣ Show Education Distribution"):
-        education_col = None
-        for col in hr_data.columns:
-            if 'educ' in col.lower():
-                education_col = col
-                break
+    # --------------------------------
+    # SUMMARY METRICS
+    # --------------------------------
+    st.subheader("📈 Key HR Insights")
 
-        if education_col:
-            st.subheader("🎓 Education Level Distribution")
-            education_distribution = hr_data[education_col].value_counts()
-            st.write(education_distribution)
-            st.bar_chart(education_distribution)
-        else:
-            st.error("❌ No 'Education' column found in this dataset.")
+    total_employees = len(hr_data)
 
-    # ---------------------------------
-    # SECTION 2: College Dropouts
-    # ---------------------------------
-    if st.button("2️⃣ Show College Dropouts"):
-        education_col = None
-        for col in hr_data.columns:
-            if 'educ' in col.lower():
-                education_col = col
-                break
+    # Detect columns dynamically
+    age_col = next((col for col in hr_data.columns if 'age' in col.lower()), None)
+    salary_col = next((col for col in hr_data.columns if 'salary' in col.lower()), None)
 
-        if education_col:
-            st.subheader("📉 College Dropouts (Attended but Didn’t Graduate)")
+    avg_age = hr_data[age_col].mean() if age_col else None
+    avg_salary = hr_data[salary_col].mean() if salary_col else None
 
-            dropouts = hr_data[
-                hr_data[education_col].astype(str).str.contains("some", case=False, na=False)
-            ]
-            dropouts = dropouts[
-                ~dropouts[education_col].astype(str).str.contains("bachelor|master|doctor|phd|graduate", case=False, na=False)
-            ]
+    col1, col2, col3 = st.columns(3)
+    col1.metric("👥 Total Employees", f"{total_employees:,}")
+    col2.metric("🧓 Average Age", f"{avg_age:.1f}" if avg_age else "N/A")
+    col3.metric("💰 Average Salary", f"{avg_salary:,.2f}" if avg_salary else "N/A")
 
-            st.write(f"Total count: **{dropouts.shape[0]}**")
-            if dropouts.shape[0] > 0:
-                st.dataframe(dropouts)
-            else:
-                st.info("No college dropouts found based on current dataset values.")
-        else:
-            st.error("❌ No 'Education' column found in this dataset.")
+    st.markdown("---")
 
-    # ---------------------------------
-    # SECTION 3: Age Distribution
-    # ---------------------------------
-    if st.button("3️⃣ Show Age Distribution"):
-        if 'Age' in hr_data.columns:
-            st.subheader("🧑‍💼 Age Distribution of Employees")
-            age_counts = hr_data['Age'].value_counts().sort_index()
-            st.line_chart(age_counts)
-        else:
-            st.error("❌ 'Age' column not found in this dataset.")
+    # --------------------------------
+    # EDUCATION DISTRIBUTION
+    # --------------------------------
+    education_col = next((col for col in hr_data.columns if 'educ' in col.lower()), None)
+    if education_col:
+        st.subheader("🎓 Education Level Distribution")
+        education_distribution = hr_data[education_col].value_counts()
+        st.bar_chart(education_distribution)
+        st.dataframe(pd.DataFrame({
+            "Education Level": education_distribution.index,
+            "Count": education_distribution.values
+        }))
+    else:
+        st.warning("⚠️ No 'Education' column found in dataset.")
 
+    st.markdown("---")
 
-    # ---------------------------------
-    # SECTION 5: Salary Overview
-    # ---------------------------------
-    if st.button("5️⃣ Show Salary Overview"):
-        salary_cols = [col for col in hr_data.columns if 'salary' in col.lower()]
-        if salary_cols:
-            col = salary_cols[0]
-            st.subheader(f"💰 Salary Overview ({col})")
-            st.write(f"Average Salary: **{hr_data[col].mean():,.2f}**")
-            st.write(f"Maximum Salary: **{hr_data[col].max():,.2f}**")
-            st.write(f"Minimum Salary: **{hr_data[col].min():,.2f}**")
-            st.bar_chart(hr_data[col])
-        else:
-            st.error("❌ No 'Salary' column found in this dataset.")
+    # --------------------------------
+    # AGE DISTRIBUTION
+    # --------------------------------
+    if age_col:
+        st.subheader("🧑‍💼 Age Distribution of Employees")
+        age_counts = hr_data[age_col].value_counts().sort_index()
+        st.line_chart(age_counts)
+    else:
+        st.warning("⚠️ No 'Age' column found in dataset.")
+
+    st.markdown("---")
+
+    # --------------------------------
+    # SALARY OVERVIEW
+    # --------------------------------
+    if salary_col:
+        st.subheader(f"💰 Salary Overview ({salary_col})")
+        avg = hr_data[salary_col].mean()
+        max_salary = hr_data[salary_col].max()
+        min_salary = hr_data[salary_col].min()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Average Salary", f"{avg:,.2f}")
+        col2.metric("Highest Salary", f"{max_salary:,.2f}")
+        col3.metric("Lowest Salary", f"{min_salary:,.2f}")
+
+        st.bar_chart(hr_data[salary_col])
+    else:
+        st.warning("⚠️ No 'Salary' column found in this dataset.")
+
+    st.markdown("---")
+
+    # --------------------------------
+    # ATTRITION ANALYSIS
+    # --------------------------------
+    attrition_col = next((col for col in hr_data.columns if 'attrition' in col.lower()), None)
+    if attrition_col:
+        st.subheader("📉 Attrition (Employee Turnover) Overview")
+        attrition_counts = hr_data[attrition_col].value_counts()
+        st.bar_chart(attrition_counts)
+        st.dataframe(pd.DataFrame({
+            "Attrition Status": attrition_counts.index,
+            "Count": attrition_counts.values,
+            "Percentage": round((attrition_counts.values / attrition_counts.sum()) * 100, 2)
+        }))
+    else:
+        st.info("ℹ️ No 'Attrition' column found — skipping turnover analysis.")
+
+    st.markdown("---")
+
+    # --------------------------------
+    # TEAM CREDITS
+    # --------------------------------
+    st.markdown("""
+    ---
+    👩‍💻 **Project Created By:**
+    - Srujan Anirudh  
+    - Srinivas  
+    - M. Chathurya  
+    - Nakka Dharani  
+    - Pavan  
+
+    🏫 **Project:** HR Data Analysis Dashboard  
+    💡 Built with ❤️ using **Python** & **Streamlit**
+    """)
+else:
+    st.info("👆 Please upload an HR-related CSV file to begin your analysis.")
+
 
 else:
     st.info("👆 Please upload an HR-related CSV file to begin your analysis.")
+
 
 
